@@ -213,7 +213,7 @@ Future<void> editSubscriptionDetails({
       if (responseData['success'] == true) {
         // Successfully deleted
         ScaffoldMessenger.of(ref.context).showSnackBar(
-          const SnackBar(content: Text('Subscription deleted successfully')),
+          const SnackBar(content: Text('Subscription deleted successfully'),backgroundColor: Colors.red,),
         );
 
         // Call getSubscribers to refresh the state

@@ -345,37 +345,7 @@ class _LoginPageState extends State<LoginPage> {
                             width: screenWidth * 0.8,
                             child: Row(
                               children: [
-                                // Consumer(builder: (context, ref, build) {
-                                //   var select =
-                                //       ref.read(selectionModelProvider.notifier);
-                                //   var val = ref.watch(selectionModelProvider).checkBox;
-                                //   return Expanded(
-                                //     child: ListTile(
-                                //       contentPadding: EdgeInsets.zero,
-                                //       leading: Checkbox(
-                                //         value: val,
-                                //         focusColor: Color(0XFFb0b0b0),
-                                //         side: BorderSide(color: Color(0XFFb0b0b0)),
-                                //         onChanged: (newValue) {
-                                //           select.toggleCheckBox(newValue);
-                                //         },
-                                //       ),
-                                //       title: GestureDetector(
-                                //         // onTap: () {
-                                //         //   select.toggleCheckBox(!val);
-                                //         // },
-                                //         child: Text(
-                                //           'Remember me',
-                                //           style: TextStyle(
-                                //               color: val
-                                //                   ? Color(0xFF330099)
-                                //                   : Color(0xFFb0b0b0),
-                                //               fontSize: 12),
-                                //         ),
-                                //       ),
-                                //     ),
-                                //   );
-                                // }),
+                             
                                 TextButton(
                                   onPressed: () {
                                     //forgot password

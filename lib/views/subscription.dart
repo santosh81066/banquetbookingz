@@ -26,19 +26,24 @@ class _SubscriptionState extends ConsumerState<Subscription> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            StackWidget(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(120),
+         child:StackWidget(
               text: "Subscription",
               onTap: () {
                 Navigator.of(context).pushNamed("addsubscriber");
               },
             ),
+         ),
+      body: SingleChildScrollView(
+        child: Column(
+          
+          children: [
+            
             const SizedBox(height: 5),
             subscriptionState.data == null || subscriptionState.data!.isEmpty
                 ? const Center(
-                    child: Text("No data found"),
+                    child: CircularProgressIndicator(),
                   )
                 : ListView.builder(
                     shrinkWrap: true,

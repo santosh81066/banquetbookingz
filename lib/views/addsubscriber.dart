@@ -4,6 +4,7 @@ import '../providers/authprovider.dart';
 import '../providers/subscriptionprovider_0.dart';
 import 'package:banquetbookingz/providers/loader.dart';
 
+
 class AddSubscriber extends ConsumerStatefulWidget {
   const AddSubscriber({super.key});
 
@@ -12,22 +13,13 @@ class AddSubscriber extends ConsumerStatefulWidget {
 }
 
 class _AddSubscriberState extends ConsumerState<AddSubscriber> {
+  final _formKey = GlobalKey<FormState>(); // Form key for validation
+
   final TextEditingController planController = TextEditingController();
   final TextEditingController frequencyController = TextEditingController();
   final TextEditingController subPlanController = TextEditingController();
   final TextEditingController bookingsController = TextEditingController();
   final TextEditingController pricingController = TextEditingController();
-
-  String? selectedValue = "Apple";
-
-  // List of items in the dropdown
-  final List<String> items = [
-    "Apple",
-    "Banana",
-    "Orange",
-    "Grapes",
-    "Mango",
-  ];
 
   @override
   void dispose() {
@@ -50,81 +42,92 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
         padding: const EdgeInsets.all(15),
         color: const Color(0xFFf5f5f5),
         child: SingleChildScrollView(
-          child: Column(
-            children: [
-              AppBar(
-                leading: IconButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Color(0xff6418c3),
+          child: Form(
+            key: _formKey, // Assign the form key
+            child: Column(
+              children: [
+                AppBar(
+                  leading: IconButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    icon: const Icon(
+                      Icons.arrow_back,
+                      color: Color(0xff6418c3),
+                    ),
+                  ),
+                  backgroundColor: const Color(0xfff5f5f5),
+                  title: const Text(
+                    "Subscription",
+                    style: TextStyle(color: Color(0xff6418c3), fontSize: 20),
                   ),
                 ),
-                backgroundColor: const Color(0xfff5f5f5),
-                title: const Text(
-                  "Subscription",
-                  style: TextStyle(color: Color(0xff6418c3), fontSize: 20),
+                const SizedBox(height: 20),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Subscription details",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 18),
+                    _buildTextField("Plan", planController),
+                    const SizedBox(height: 10),
+                    _buildTextField("Frequency", frequencyController,
+                        keyboardType: TextInputType.number),
+                    const SizedBox(height: 10),
+                    _buildTextField("Duration", subPlanController),
+                    const SizedBox(height: 10),
+                    _buildTextField("Bookings", bookingsController,
+                        keyboardType: TextInputType.number),
+                    const SizedBox(height: 10),
+                    _buildTextField("Pricing", pricingController,
+                        keyboardType: TextInputType.number),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 20),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Subscription details",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 18),
-                  _buildTextField("Plan", planController),
-                  const SizedBox(height: 10),
-                  _buildTextField("Frequency", frequencyController,
-                      keyboardType: TextInputType.number),
-                  const SizedBox(height: 10),
-                  _buildTextField("Sub-plan", subPlanController),
-                  const SizedBox(height: 10),
-                  _buildTextField("Bookings", bookingsController,
-                      keyboardType: TextInputType.number),
-                  const SizedBox(height: 10),
-                  _buildTextField("Pricing", pricingController,
-                      keyboardType: TextInputType.number),
-                ],
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: isLoading
-                    ? null
-                    : () async {
-                        await ref
-                            .read(subscriptionProvider.notifier)
-                            .postSubscriptionDetails(
-                              planName: planController.text,
-                              userId: '$userId',
-                              frequency: frequencyController.text,
-                              subPlanName: subPlanController.text,
-                              numBookings: bookingsController.text,
-                              price: pricingController.text,
-                            );
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            await ref
+                                .read(subscriptionProvider.notifier)
+                                .postSubscriptionDetails(
+                                  planName: planController.text,
+                                  userId: '$userId',
+                                  frequency: frequencyController.text,
+                                  subPlanName: subPlanController.text,
+                                  numBookings: bookingsController.text,
+                                  price: pricingController.text,
+                                );
 
-                        // Clear text fields after submission
-                        planController.clear();
-                        frequencyController.clear();
-                        subPlanController.clear();
-                        bookingsController.clear();
-                        pricingController.clear();
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0XFF6418C3),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  minimumSize: const Size(double.infinity, 50),
+                            // Clear text fields after submission
+                            planController.clear();
+                            frequencyController.clear();
+                            subPlanController.clear();
+                            bookingsController.clear();
+                            pricingController.clear();
+
+                            _showSnackBar(
+                                context, "Subscription added successfully!");
+                            Navigator.of(context).pop();
+                          } else {
+                            _showSnackBar(context, "Please fill all fields.");
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0XFF6418C3),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    minimumSize: const Size(double.infinity, 50),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text("Add Subscriber"),
                 ),
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Add Subscriber"),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -145,8 +148,28 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
             hintText: label,
             border: const OutlineInputBorder(),
           ),
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return "$label cannot be empty"; // Validation message
+            }
+            if (keyboardType == TextInputType.number &&
+                int.tryParse(value) == null) {
+              return "$label must be a valid number";
+            }
+            return null;
+          },
         ),
       ],
+    );
+  }
+
+  void _showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: message=="Please fill all fields."? Colors.red: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 }

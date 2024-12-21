@@ -81,7 +81,7 @@ class _UsersState extends ConsumerState<Users> {
 
         // Filter users based on the user type and search text
         final filteredUsers = usersData.where((user) {
-          final matchesFilter = filter == null || user.userRole == filter;
+          final matchesFilter = (filter == null || user.userRole == filter)&&user.userRole!="a";
           final matchesSearch =
               searchText.isEmpty || (user.email?.contains(searchText) ?? false);
           return matchesFilter && matchesSearch;

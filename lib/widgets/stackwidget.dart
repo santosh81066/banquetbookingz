@@ -105,7 +105,9 @@ class StackWidget extends StatelessWidget {
                           ),
                         )
                       : Container(),
-                  Positioned(
+                    // Conditionally hide the TextField if the text is "Subscription"
+                  text != "Subscription"
+                      ?Positioned(
                     bottom: 0,
                     left: 10,
                     right: 10,
@@ -134,7 +136,7 @@ class StackWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                  ),
+                  ):Container(),// Empty container to hide the TextField
                 ],
               ),
             ),

@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
       home: Consumer(builder: (context, ref, child) {
         final authState = ref.watch(authProvider);
         final authNotifier = ref.read(authProvider.notifier);
+        print("this is admin main page******************************************************");
 
         // Fetch and log the user role
         authNotifier.getUserRole().then((role) {
