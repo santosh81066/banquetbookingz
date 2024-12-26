@@ -50,7 +50,9 @@ class MyApp extends StatelessWidget {
         return FutureBuilder(
           future: ref.watch(authProvider.notifier).isAuthenticated(),
           builder: (context, snapshot) {
-            print('${snapshot.data}');
+            print('snapdata---${snapshot.data}');
+            print('snapconnectionstate---${snapshot.connectionState}');
+            print('connectionstate---------${ConnectionState.done}');
             // Check the authentication status
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.data == true) {
