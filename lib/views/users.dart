@@ -145,6 +145,7 @@ class _UsersState extends ConsumerState<Users> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
+                    
                   ],
                 ),
                 trailing: Row(
@@ -166,6 +167,7 @@ class _UsersState extends ConsumerState<Users> {
                            print("userside:${user.username}");
                             print("userside:${user.email}");
                              print("userside:${user.userRole}");
+                             print("usersidestatus:${user.userStatus}");
                           Navigator.pushNamed(
                                     context,
                                     'editUser',
@@ -174,11 +176,12 @@ class _UsersState extends ConsumerState<Users> {
                                                 'email':user.email,
                                                  'mobileNo':user.mobileNo,
                                                   'userRole':user.userRole,
+                                                  'userStatus':user.userStatus,
                                                   'admin': user.userRole == 'a'?true:false,
                                                  }, // Pass User object as JSON
-                                      );
+                                               );
 
-                                  },
+                                          },
                       
                     ),
                    IconButton(

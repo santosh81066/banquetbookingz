@@ -1,5 +1,6 @@
 import 'package:banquetbookingz/providers/bottomnavigationbarprovider.dart';
 import 'package:banquetbookingz/providers/selectionmodal.dart';
+import 'package:banquetbookingz/views/category.dart';
 import 'package:banquetbookingz/views/settings.dart';
 import 'package:banquetbookingz/views/subscription.dart';
 import 'package:banquetbookingz/views/subscriptionchart.dart';
@@ -10,6 +11,7 @@ import 'package:banquetbookingz/widgets/subscriptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 import '../providers/authprovider.dart';
 import '../providers/usersprovider.dart';
@@ -41,24 +43,67 @@ class _DashboardWidgetState extends ConsumerState<DashboardWidget> {
   }
 }
 
+// // Example API response data
+//   final List<Map<String, String>> vendorData = [
+//     {"name": "Vendor A", "registerDate": "15-12-2024"},
+//     {"name": "Vendor B", "registerDate": "05-12-2024"},
+//     {"name": "Vendor C", "registerDate": "25-12-2024"},
+//     {"name": "Vendor D", "registerDate": "01-01-2025"},
+//     {"name": "Vendor E", "registerDate": "06-01-2025"},
+//   ];
+
 
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+     final usersData = ref.watch(usersProvider);
     final usertype = ref.watch(authProvider);
     List<Widget> pages = [
       const DashboardWidget(),
       const Users(),
-     if(usertype.data!.userRole=='a') const Subscription(),
+      if(usertype.data!.userRole=='a') const Subscription(),
+      if(usertype.data!.userRole=='a') const CategoryScreen(),
       const Settings()
     ];
+    
+
+
+    // Vendors Registered in the Last Month: $recentVendorCount',
 
     return Scaffold(
       body: Consumer(builder: (context, ref, child) {
         final selectedIndex = ref.watch(pageIndexProvider);
         final dashboard = ref.watch(selectionModelProvider).dashboard;
         //  final get=ref.watch(getUserProvider.notifier);
+         // Current date
+      final now = DateTime.now();
+
+      // One month back
+      final oneMonthAgo = now.subtract(const Duration(days: 30));
+
+      // Filter for vendors only
+      final vendorData = usersData.where((user) {
+        return user.userRole == "v";
+      }).toList();
+
+      // Parse and filter vendors created in the last month
+      final recentVendorCount = vendorData.where((vendor) {
+        final createdAt = vendor.createdAt;
+
+        // Skip null `createdAt`
+        if (createdAt == null || createdAt.isEmpty) return false;
+
+        // Parse `created_at` to DateTime and filter by date range
+        final registerDate = DateTime.tryParse(createdAt);
+        if (registerDate == null) return false;
+
+        return registerDate.isAfter(oneMonthAgo) &&
+            registerDate.isBefore(now.add(const Duration(days: 1)));
+      }).length;
+
+      print("Latest vendors: $recentVendorCount");
+
         return selectedIndex == 0 && dashboard == true
             ? SingleChildScrollView(
                 child: Column(
@@ -97,9 +142,9 @@ class _DashboardWidgetState extends ConsumerState<DashboardWidget> {
                                         size: 30.0, // Icon size
                                       ),
                                     ),
-                                    const Text(
-                                      "12",
-                                      style: TextStyle(
+                                     Text(
+                                      recentVendorCount.toString(),
+                                      style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 20),
                                     ),
@@ -719,6 +764,11 @@ class _DashboardWidgetState extends ConsumerState<DashboardWidget> {
       const BottomNavigationBarItem(
         icon: Icon(Icons.subscriptions),
         label: 'Subs',
+      ),
+    if (isAdmin)
+        const BottomNavigationBarItem(
+        icon: Icon(Icons.apartment),
+        label: 'category',
       ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.settings),

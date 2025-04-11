@@ -105,6 +105,7 @@ class _SettingsState extends ConsumerState<Settings> {
                     'mobileNo': adminData?.mobileNo,
                     'address': adminData?.address,
                     'userRole': adminData?.userRole,
+                    'userStatus':adminData?.userStatus,
                     'location': adminData?.location,
                     'admin': true,
                   },

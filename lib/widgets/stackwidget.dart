@@ -69,13 +69,13 @@ class StackWidget extends StatelessWidget {
                       ),
                     ),
                   ),
-                  selectedIndex != 3 && usertype.data?.userRole=='a'
+                  selectedIndex != 4 && usertype.data?.userRole=='a'
                       ? Positioned(
                           top: 50,
                           right: 20,
                           child: InkWell(
                             onTap: onTap,
-                            child: selectedIndex == 2
+                            child: selectedIndex == 2 
                                 ? const Icon(
                                     Icons.add_circle_outline_rounded,
                                     size: 50,
@@ -106,7 +106,7 @@ class StackWidget extends StatelessWidget {
                         )
                       : Container(),
                     // Conditionally hide the TextField if the text is "Subscription"
-                  text != "Subscription"
+                   text != "Subscription" && text !="Category"
                       ?Positioned(
                     bottom: 0,
                     left: 10,

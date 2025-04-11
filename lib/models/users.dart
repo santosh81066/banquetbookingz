@@ -35,6 +35,8 @@ class User {
   bool? userStatus;
   String? mobileNo;
   String? profilePic;
+  String? createdAt;
+
 
   var data;
 
@@ -46,6 +48,7 @@ class User {
     this.userStatus,
     this.mobileNo,
     this.profilePic,
+    this.createdAt
   });
 
    User.fromJson(Map<String, dynamic> json) {
@@ -54,9 +57,10 @@ class User {
     username = json['username']?.toString();
     email = json['email']?.toString();
     userRole = json['user_role']?.toString();
-    userStatus = json['user_status'] == 1; // Convert 1/0 to true/false
+    userStatus = json['user_status']; // Convert 1/0 to true/false
     mobileNo = json['mobile_no']?.toString(); // Convert to string if necessary
     profilePic = json['profile_pic']?.toString();
+    createdAt = json['created_at']?.toString();
   }
 
   Map<String, dynamic> toJson() {
@@ -65,15 +69,16 @@ class User {
     data['username'] = username;
     data['email'] = email;
     data['user_role'] = userRole;
-    data['user_status'] = userStatus == true ? 1 : 0; // Convert bool to int
+    data['user_status'] = userStatus ; // Convert bool to int
     data['mobile_no'] = mobileNo;
     data['profile_pic'] = profilePic;
+    data['created_at'] = createdAt;
     return data;
   }
 
   @override
   String toString() {
-    return 'User(userId: $userId, username: $username, email: $email, userRole: $userRole, userStatus: $userStatus, mobileNo: $mobileNo, profilePic: $profilePic)';
+    return 'User(userId: $userId, username: $username, email: $email, userRole: $userRole, userStatus: $userStatus, mobileNo: $mobileNo, profilePic: $profilePic,createdAt:$createdAt )';
   }
 }
 extension UserCopyWith on User {
@@ -86,6 +91,7 @@ extension UserCopyWith on User {
       userStatus: userStatus,
       mobileNo: mobileNo,
       profilePic: profilePic ?? this.profilePic,
+      createdAt :createdAt ?? createdAt
     );
   }
 }

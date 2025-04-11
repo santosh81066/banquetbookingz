@@ -26,6 +26,8 @@ class UserNotifier extends StateNotifier<List<User>> {
   String email,
   String mobile,
   File? profileImage,
+  bool? userStatus,
+  // bool?userRole,
   bool? admin,
   WidgetRef ref,
 ) async {
@@ -46,7 +48,8 @@ class UserNotifier extends StateNotifier<List<User>> {
       ..fields['id'] = userId.toString()
       ..fields['username'] = username
       ..fields['email'] = email
-      ..fields['mobile_no'] = mobile;
+      ..fields['mobile_no'] = mobile
+      ..fields['user_status'] = userStatus.toString();
 
     if (profileImage != null) {
       if (await profileImage.exists()) {

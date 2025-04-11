@@ -21,6 +21,10 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
   final TextEditingController bookingsController = TextEditingController();
   final TextEditingController pricingController = TextEditingController();
 
+  String? selectedDuration; // To store the selected dropdown value
+
+  final List<String> durations = ["Monthly", "Daily", "Yearly"]; // Dropdown options
+
   @override
   void dispose() {
     planController.dispose();
@@ -76,7 +80,7 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
                     _buildTextField("Frequency", frequencyController,
                         keyboardType: TextInputType.number),
                     const SizedBox(height: 10),
-                    _buildTextField("Duration", subPlanController),
+                    _buildDropdownField(), // Replace the "Duration" text field
                     const SizedBox(height: 10),
                     _buildTextField("Bookings", bookingsController,
                         keyboardType: TextInputType.number),
@@ -97,7 +101,7 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
                                   planName: planController.text,
                                   userId: '$userId',
                                   frequency: frequencyController.text,
-                                  subPlanName: subPlanController.text,
+                                  subPlanName: selectedDuration ?? "",
                                   numBookings: bookingsController.text,
                                   price: pricingController.text,
                                 );
@@ -105,9 +109,12 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
                             // Clear text fields after submission
                             planController.clear();
                             frequencyController.clear();
-                            subPlanController.clear();
+                           
                             bookingsController.clear();
                             pricingController.clear();
+                             setState(() {
+                              selectedDuration = null;
+                            });
 
                             _showSnackBar(
                                 context, "Subscription added successfully!");
@@ -162,6 +169,42 @@ class _AddSubscriberState extends ConsumerState<AddSubscriber> {
       ],
     );
   }
+
+  Widget _buildDropdownField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("Duration", style: TextStyle(fontSize: 18)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: selectedDuration,
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            contentPadding: EdgeInsets.symmetric(vertical: 12, horizontal: 16), // Add inner padding
+          ),
+          hint: const Text("Select Duration"),
+          items: durations.map((String duration) {
+            return DropdownMenuItem<String>(
+              value: duration,
+              child: Text(duration),
+            );
+          }).toList(),
+          onChanged: (String? newValue) {
+            setState(() {
+              selectedDuration = newValue;
+            });
+          },
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Please select a duration";
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
 
   void _showSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(

@@ -9,10 +9,10 @@ class EditUser extends ConsumerStatefulWidget {
   const EditUser({Key? key}) : super(key: key);
 
   @override
-  _EditUserState createState() => _EditUserState();
+  EditUserState createState() => EditUserState();
 }
 
-class _EditUserState extends ConsumerState<EditUser> {
+class EditUserState extends ConsumerState<EditUser> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -24,6 +24,9 @@ class _EditUserState extends ConsumerState<EditUser> {
   String? _profilePicUrl; // Store the URL of the current profile picture
   File? _profileImage; // For locally picked images
   bool? admin;
+  bool? userStatus; // User status (active/inactive)
+  // bool _isSwitched = false; // State for the toggle switch
+  String? userRole; // User role variable
  
   @override
   void didChangeDependencies() {
@@ -38,6 +41,8 @@ class _EditUserState extends ConsumerState<EditUser> {
         _nameController.text = args['username'] ?? '';
         _emailController.text = args['email'] ?? '';
         _mobileController.text = args['mobileNo'] ?? '';
+        userRole = args['userRole'] ;
+        userStatus=args['userStatus'];
         admin=args["admin"];
 
         // Construct the profile picture URL from the userId
@@ -51,6 +56,41 @@ class _EditUserState extends ConsumerState<EditUser> {
       _initialized = true;
     }
   }
+
+  void _showConfirmationDialog(bool newValue) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Status Change'),
+          content: Text(
+            newValue
+                ? 'Do you want to activate this user?'
+                : 'Do you want to deactivate this user?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  // _isSwitched = newValue; // Update the switch state
+                  userStatus = newValue; // Update userStatus
+                });
+                Navigator.of(context).pop(); // Close the dialog
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<void> _pickImage(ImageSource source) async {
     try {
@@ -89,6 +129,7 @@ class _EditUserState extends ConsumerState<EditUser> {
         _emailController.text,
         _mobileController.text,
         _profileImage,// Pass the picked image file (if available)
+        userStatus,
         admin,
         ref,
       );
@@ -128,6 +169,7 @@ class _EditUserState extends ConsumerState<EditUser> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final profilePic = args['profilePic'];
+    print("userstaus------$userStatus");
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -153,12 +195,23 @@ class _EditUserState extends ConsumerState<EditUser> {
                 padding: const EdgeInsets.all(15),
                 child: Column(
                   children: [
-                    const Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        "Profile Photo",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
+                   Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          "Profile Photo",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                        if (userRole == "v" || userRole == "m")
+                          Switch(
+                            value: userStatus ?? false, // Reflect current status
+                                  onChanged: (value) {
+                                    _showConfirmationDialog(value); // Show confirmation popup
+                                  },
+                                  activeColor: const Color(0XFF6418C3),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 10),
                     GestureDetector(

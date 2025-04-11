@@ -1,7 +1,9 @@
 import 'package:banquetbookingz/providers/authprovider.dart';
+import 'package:banquetbookingz/views/addcategory.dart';
 import 'package:banquetbookingz/views/addsubscriber.dart';
 import 'package:banquetbookingz/views/adduser.dart';
 import 'package:banquetbookingz/views/alltransactions.dart';
+import 'package:banquetbookingz/views/category.dart';
 import 'package:banquetbookingz/views/editsubscriber.dart';
 import 'package:banquetbookingz/views/edituser.dart';
 import 'package:banquetbookingz/views/example.dart';
@@ -14,16 +16,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import "package:banquetbookingz/models/users.dart";
 import "package:banquetbookingz/views/addsubplan.dart";
 
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    
     print('Main.dart build');
     return MaterialApp(
       title: 'Flutter Demo',
@@ -38,6 +44,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff6418c3)),
         useMaterial3: true,
       ),
+      scaffoldMessengerKey: rootScaffoldMessengerKey,
       home: Consumer(builder: (context, ref, child) {
         final authState = ref.watch(authProvider);
         final authNotifier = ref.read(authProvider.notifier);
@@ -81,6 +88,8 @@ class MyApp extends StatelessWidget {
         "addsubscriber": (context) => const AddSubscriber(),
         "getsubscriptions": (context) => const Subscription(),
         "addsubplans":(context) => const AddSubPlans(),
+        "category":(context) => const CategoryScreen(),
+        "addcategory":(context) => const AddCategory()
       },
     );
   }

@@ -261,6 +261,7 @@ Future<void> editSubscriptionDetails({
 
       if (response.statusCode == 200) {
         final res = json.decode(response.body);
+        print("subscription Response;;;$res");
         final subscriptionData = Subscription.fromJson(res);
         state = subscriptionData; // Update state with fetched data
         print("Subscribers fetched successfully: $subscriptionData");
