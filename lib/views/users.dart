@@ -1,5 +1,4 @@
 import 'package:banquetbookingz/utils/banquetbookzapi.dart';
-import 'package:banquetbookingz/views/edituser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:banquetbookingz/providers/usersprovider.dart';
@@ -7,7 +6,7 @@ import 'package:banquetbookingz/widgets/stackwidget.dart';
 import '../providers/searchtextnotifier.dart';
 import "package:banquetbookingz/models/users.dart";
 
-class Users extends ConsumerStatefulWidget{
+class Users extends ConsumerStatefulWidget {
   const Users({super.key});
 
   @override
@@ -16,6 +15,9 @@ class Users extends ConsumerStatefulWidget{
 
 class _UsersState extends ConsumerState<Users> {
   final TextEditingController _searchController = TextEditingController();
+
+  // Store image URLs with static keys - this ensures they don't change on rebuilds
+  final Map<String, String> _profileImageCache = {};
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +73,6 @@ class _UsersState extends ConsumerState<Users> {
       builder: (context, ref, child) {
         final usersData = ref.watch(usersProvider);
         final searchText = ref.watch(searchTextProvider);
-        print("this is the data for fetching $usersData");
 
         if (usersData.isEmpty) {
           return const Center(
@@ -81,7 +82,8 @@ class _UsersState extends ConsumerState<Users> {
 
         // Filter users based on the user type and search text
         final filteredUsers = usersData.where((user) {
-          final matchesFilter = (filter == null || user.userRole == filter)&&user.userRole!="a";
+          final matchesFilter = (filter == null || user.userRole == filter) &&
+              user.userRole != "a";
           final matchesSearch =
               searchText.isEmpty || (user.email?.contains(searchText) ?? false);
           return matchesFilter && matchesSearch;
@@ -93,11 +95,19 @@ class _UsersState extends ConsumerState<Users> {
           );
         }
 
-        return ListView(
-         
+        return ListView.builder(
           padding: EdgeInsets.zero,
-          children: filteredUsers.map((user) {
+          itemCount: filteredUsers.length,
+          cacheExtent:
+              1000, // Cache more items to reduce rebuilds when scrolling
+          itemBuilder: (context, index) {
+            final user = filteredUsers[index];
+
+            // Create a stable key for this list item
+            final userKey = 'user-${user.userId}';
+
             return Card(
+              key: ValueKey(userKey),
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(0.0),
@@ -105,25 +115,7 @@ class _UsersState extends ConsumerState<Users> {
               elevation: 4,
               margin: const EdgeInsets.only(bottom: 2.0),
               child: ListTile(
-                leading:Consumer(
-                builder: (context, ref, child) {
-                  final userNotifier = ref.watch(usersProvider);
-                  final currentUser = userNotifier.firstWhere((u) => u.userId == user.userId, orElse: () => user);
-
-                  return currentUser.profilePic != null
-                      ? CircleAvatar(
-                          backgroundImage: NetworkImage(
-                            '${Api.profilePic}/${currentUser.userId}?timestamp=${DateTime.now().millisecondsSinceEpoch}',
-                          ),
-                          radius: 30,
-                        )
-                      : const Icon(
-                          Icons.account_circle,
-                          size: 50,
-                          color: Colors.grey,
-                        );
-                 },
-               ),
+                leading: _buildUserAvatar(user),
                 title: Text(
                   "User: ${user.username ?? "No Name"}",
                   style: const TextStyle(
@@ -145,7 +137,6 @@ class _UsersState extends ConsumerState<Users> {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    
                   ],
                 ),
                 trailing: Row(
@@ -154,74 +145,121 @@ class _UsersState extends ConsumerState<Users> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                          //   final userModel = User(
-                          //   userId: user.userId,
-                          //   username: user.username,
-                          //   email: user.email,
-                          //   userRole: user.userRole, // Optional if available
-                          //   userStatus: user.userStatus, // Optional if available
-                          //   mobileNo: user.mobileNo,
-                          //   profilePic: 'http://93.127.172.164:8080${user.profilePic}',
-                          //   );
-                          print("userside:${user.userId}");
-                           print("userside:${user.username}");
-                            print("userside:${user.email}");
-                             print("userside:${user.userRole}");
-                             print("usersidestatus:${user.userStatus}");
-                          Navigator.pushNamed(
-                                    context,
-                                    'editUser',
-                                    arguments:{'userid':user.userId,
-                                                'username':user.username,
-                                                'email':user.email,
-                                                 'mobileNo':user.mobileNo,
-                                                  'userRole':user.userRole,
-                                                  'userStatus':user.userStatus,
-                                                  'admin': user.userRole == 'a'?true:false,
-                                                 }, // Pass User object as JSON
-                                               );
-
-                                          },
-                      
+                        Navigator.pushNamed(
+                          context,
+                          'editUser',
+                          arguments: {
+                            'userid': user.userId,
+                            'username': user.username,
+                            'email': user.email,
+                            'mobileNo': user.mobileNo,
+                            'userRole': user.userRole,
+                            'userStatus': user.userStatus,
+                            'admin': user.userRole == 'a' ? true : false,
+                          },
+                        );
+                      },
                     ),
-                   IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return AlertDialog(
-                                  title: const Text("Confirm Deletion"),
-                                  content: const Text("Are you sure you want to delete this user?"),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.of(context).pop(); // Close the dialog
-                                      },
-                                      child: const Text("Cancel"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        final notifier = ref.read(usersProvider.notifier);
-                                        notifier.deleteUser(user.userId.toString(), ref);
-                                        Navigator.of(context).pop(); // Close the dialog after deletion
-                                      },
-                                      child: const Text("Delete"),
-                                    ),
-                                  ],
-                                );
-                              },
+                    IconButton(
+                      icon: const Icon(Icons.delete),
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: const Text("Confirm Deletion"),
+                              content: const Text(
+                                  "Are you sure you want to delete this user?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    final notifier =
+                                        ref.read(usersProvider.notifier);
+                                    notifier.deleteUser(
+                                        user.userId.toString(), ref);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: const Text("Delete"),
+                                ),
+                              ],
                             );
                           },
-                        ),
-
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
             );
-          }).toList(),
+          },
         );
       },
     );
+  }
+
+  Widget _buildUserAvatar(dynamic user) {
+    // If no profile pic, show default icon
+    if (user.profilePic == null) {
+      return const Icon(
+        Icons.account_circle,
+        size: 50,
+        color: Colors.grey,
+      );
+    }
+
+    // Get cached URL or create a new one and cache it
+    String imageUrl;
+    final userId = user.userId.toString();
+
+    if (_profileImageCache.containsKey(userId)) {
+      imageUrl = _profileImageCache[userId]!;
+    } else {
+      // Create a URL without timestamp and cache it
+      imageUrl = '${Api.profilePic}/${user.userId}';
+      _profileImageCache[userId] = imageUrl;
+    }
+
+    // Use standard Image.network but with stable key and error handling
+    return CircleAvatar(
+      radius: 30,
+      child: ClipOval(
+        child: Image.network(
+          imageUrl,
+          key: ValueKey('avatar-$userId'),
+          width: 60,
+          height: 60,
+          fit: BoxFit.cover,
+          // Make sure we don't reload images
+          cacheWidth: 120,
+          cacheHeight: 120,
+          // Provide fallback on error
+          errorBuilder: (context, error, stackTrace) {
+            return const Icon(
+              Icons.error,
+              color: Colors.red,
+              size: 40,
+            );
+          },
+          // No loading indicator - just show the image when it's ready
+          loadingBuilder: (context, child, loadingProgress) {
+            // Always return the child without loading indicator
+            return child;
+          },
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _profileImageCache.clear();
+    super.dispose();
   }
 }
