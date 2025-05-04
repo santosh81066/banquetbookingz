@@ -3,6 +3,7 @@ import "package:flutter_riverpod/flutter_riverpod.dart";
 import 'package:http/http.dart' as http;
 import "package:banquetbookingz/utils/banquetbookzapi.dart";
 import "package:flutter/material.dart";
+import 'dart:io';
 import 'dart:convert';
 import 'package:banquetbookingz/main.dart';
 
@@ -78,102 +79,140 @@ class CategoryNotifier extends StateNotifier<Category> {
     }
   }
 
- Future<void> editCategory({
-  String? categoryid,
-  String? categoryName,
-  
- }) async {
-  try {
-    print("apicategoryid$categoryid");
-    print("apicategoryName$categoryName");
-    final response = await http.patch(
-      Uri.parse(Api.addcategory),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        
-        'id': categoryid.toString().trim() ,
-        'name': categoryName.toString().trim(),
-      
-      }),
-    );
+  Future<void> editCategory({
+    String? categoryid,
+    String? categoryName,
+  }) async {
+    try {
+      print("apicategoryid$categoryid");
+      print("apicategoryName$categoryName");
+      final response = await http.patch(
+        Uri.parse(Api.addcategory),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'id': categoryid.toString().trim(),
+          'name': categoryName.toString().trim(),
+        }),
+      );
 
-    final responseCode = response.statusCode;
-    final responseBody = json.decode(response.body);
+      final responseCode = response.statusCode;
+      final responseBody = json.decode(response.body);
 
-    print('Response Code: $responseCode');
-    print('Server Response: $responseBody');
+      print('Response Code: $responseCode');
+      print('Server Response: $responseBody');
 
-    if (responseCode == 200 || responseCode == 201) {
-      print('Subscription updated successfully: $responseBody');
-      await getCategory(); // Refresh state
-    } else {
-      throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
+      if (responseCode == 200 || responseCode == 201) {
+        print('Subscription updated successfully: $responseBody');
+        await getCategory(); // Refresh state
+      } else {
+        throw Exception(responseBody['messages'] ?? 'Unknown error occurred');
+      }
+    } catch (e) {
+      print('Error updating subscription: $e');
+      rethrow; // Pass the error back
     }
-  } catch (e) {
-    print('Error updating subscription: $e');
-    rethrow; // Pass the error back
   }
-}
-
 
   Future<void> deletecategory(String categoryid, String categoryName) async {
-    print("categoryid$categoryid");
-    print("categoryname$categoryName");
-  try {
-    final response = await http.delete(
-      Uri.parse(Api.addcategory), // Use the correct DELETE API URL
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+    print("categoryid :$categoryid");
+    print("categoryname :$categoryName");
+    try {
+      // Create the payload
+      final payload = jsonEncode({
         "id": categoryid,
         "name": categoryName,
-      }),
-    );
-      final responseCode = response.statusCode;
-    final responseBody = json.decode(response.body);
+      });
 
-    print('Response Code: $responseCode');
-    print('Server Response: $responseBody');
+      print("Delete payload: $payload");
 
+      // Parse the URL
+      final url = Uri.parse(Api.addcategory);
+      print("Delete URL: $url");
 
-    if (response.statusCode == 200) {
-      final responseData = json.decode(response.body);
+      // Create an HttpClient
+      HttpClient httpClient = HttpClient();
 
-      if (responseData['success'] == true) {
+      // Create the request
+      HttpClientRequest request = await httpClient.deleteUrl(url);
+
+      // Set headers with proper Content-Type
+      request.headers.set('Content-Type', 'application/json');
+      request.headers.set('Accept', 'application/json');
+
+      // Add the content length
+      request.headers.set(HttpHeaders.contentLengthHeader,
+          utf8.encode(payload).length.toString());
+
+      // Print headers for debugging
+      print("Request headers: ${request.headers}");
+
+      // Write the body to the request
+      request.write(payload);
+
+      // Close the request to send it
+      HttpClientResponse response = await request.close();
+
+      // Get the response body
+      final responseBody = await response.transform(utf8.decoder).join();
+      print("Raw response: $responseBody");
+
+      // Try to decode JSON response
+      Map<String, dynamic> decodedResponse;
+      try {
+        decodedResponse = json.decode(responseBody);
+        print("Decoded response: $decodedResponse");
+      } catch (e) {
+        print("Failed to decode response as JSON: $e");
+        decodedResponse = {
+          'success': false,
+          'messages': ['Invalid response format']
+        };
+      }
+
+      // Close the HTTP client
+      httpClient.close();
+
+      if (response.statusCode == 200) {
         // Successfully deleted
         rootScaffoldMessengerKey.currentState?.showSnackBar(
           const SnackBar(
-            content: Text('category deleted successfully'),
+            content: Text('Category deleted successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Refresh categories
+        await getCategory();
+      } else {
+        // Show error message
+        String errorMessage = 'Failed to delete category: ';
+        if (decodedResponse.containsKey('messages') &&
+            decodedResponse['messages'] is List) {
+          errorMessage += (decodedResponse['messages'] as List).join(', ');
+        } else {
+          errorMessage += 'Status code ${response.statusCode}';
+        }
+
+        rootScaffoldMessengerKey.currentState?.showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
             backgroundColor: Colors.red,
           ),
         );
-
-        // Call getCategory to refresh the state
-        await getCategory();
-      } else {
-        rootScaffoldMessengerKey.currentState?.showSnackBar(
-          SnackBar(
-            content: Text(
-              responseData['messages']?.join(', ') ?? 'Error deleting category',
-            ),
-          ),
-        );
       }
-    } else {
+    } catch (e) {
+      print("Exception during delete operation: $e");
       rootScaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('Failed to delete category')),
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
     }
-  } catch (e) {
-    print("Error deleting subscription: $e");
-    rootScaffoldMessengerKey.currentState?.showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
   }
 }
 
-
-}
-
-final categoryProvider = StateNotifierProvider<CategoryNotifier, Category>((ref) {
+final categoryProvider =
+    StateNotifierProvider<CategoryNotifier, Category>((ref) {
   return CategoryNotifier();
 });
